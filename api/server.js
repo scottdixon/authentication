@@ -3,13 +3,15 @@ if (process.env.NODE_ENV !== 'production') {
   require('dotenv').config()
 }
 
+const cors = require('cors')
 const express = require('express')
 const bodyParser = require('body-parser')
-const { initialize } = require('./middleware/auth')
+const { initialize, requireJWT, verifyAdmin } = require('./middleware/auth')
 
 const app = express()
 
 // Plugins
+app.use(cors())
 app.use(bodyParser.json()) // Allows me to have JSON uploads (POST/PUT)
 app.use(initialize)
 
@@ -19,9 +21,13 @@ app.use([
   require('./routes/auth')
 ])
 
+app.get('/admin', requireJWT, verifyAdmin, (req, res) => {
+  res.send('Hello admin!')
+})
+
 // JSON error handling
 app.use((error, req, res, next) => {
-  res.send({ error: error.message })
+  res.status(500).send({ error: error.message })
 })
 app.use((req, res, next) => {
   // No other routes left, must be a 404!
@@ -37,3 +43,5 @@ app.listen(7000, (error) => {
     console.log('Server is listening on http://localhost:7000/')
   }
 })
+
+module.exports = app
