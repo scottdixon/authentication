@@ -4,6 +4,17 @@ import { api, setJwt } from './api/init';
 import SignIn from './components/SignIn';
 import './App.css';
 
+const apiSignIn = async (event) => {
+  event.preventDefault()
+  const form = event.target
+  const elements = form.elements
+  const response = await api.post('/auth', {
+    email: elements.email.value,
+    password: elements.password.value
+  })
+  return response
+}
+
 class App extends Component {
   state = {
     token: localStorage.getItem('token'),
@@ -11,29 +22,12 @@ class App extends Component {
   }
 
   handleSignIn = async (event) => {
-    event.preventDefault()
-    const form = event.target
-    const elements = form.elements
-
     try {
-
-      const response = await api.post('/auth', {
-        email: elements.email.value,
-        password: elements.password.value
-      })
-
-      this.setState({
-        token: response.data.token
-      })
-
+      const response = await apiSignIn(event)
+      this.setState({ token: response.data.token })
       setJwt(response.data.token)
-
-      let products = await api.get('/products')
-
     } catch (error) {
-      this.setState({
-        loginError: error.message
-      })
+      this.setState({ loginError: error.message })
     }
   }
 
